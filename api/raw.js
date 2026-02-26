@@ -5,20 +5,23 @@ export default async function handler(req, res) {
   }
 
   const ua = req.headers['user-agent'] || '';
-  const isRoblox = ua.includes('Roblox') || ua.includes('RobloxStudio');
+  const isRoblox = ua.includes('Roblox') || ua.includes('RobloxStudio') || ua.includes('rbx');
 
   if (isRoblox) {
     try {
-      const response = await fetch(originalUrl);
+      const response = await fetch(originalUrl, { 
+        headers: { 'User-Agent': 'Bx-Protector-Roblox' } 
+      });
       if (!response.ok) throw new Error('Error HTTP');
       const text = await response.text();
       res.setHeader('Content-Type', 'text/plain;charset=utf-8');
+      res.setHeader('Cache-Control', 'no-cache');
       res.status(200).send(text);
     } catch (e) {
       res.status(500).send('Failed to load script');
     }
   } else {
-    // Access Denied bonito
+    // Access Denied bonito (igual que en tu imagen)
     res.setHeader('Content-Type', 'text/html;charset=utf-8');
     res.status(403).send(`<!DOCTYPE html>
 <html lang="es">
@@ -31,7 +34,11 @@ export default async function handler(req, res) {
 </head>
 <body class="bg-zinc-950 text-zinc-200 min-h-screen flex items-center justify-center">
   <div class="max-w-md text-center px-6">
-    <div class="flex justify-center mb-8"><div class="w-24 h-24 bg-red-600/10 border border-red-500/30 rounded-3xl flex items-center justify-center"><i class="fas fa-lock text-red-500 text-7xl"></i></div></div>
+    <div class="flex justify-center mb-8">
+      <div class="w-24 h-24 bg-red-600/10 border border-red-500/30 rounded-3xl flex items-center justify-center">
+        <i class="fas fa-lock text-red-500 text-7xl"></i>
+      </div>
+    </div>
     <h1 class="text-6xl font-bold tracking-tighter mb-2 text-red-500">ACCESS DENIED</h1>
     <div class="inline-flex items-center gap-3 bg-zinc-900 border border-red-500/30 px-6 py-3 rounded-3xl mb-8">
       <i class="fas fa-shield-halved text-red-500"></i>
