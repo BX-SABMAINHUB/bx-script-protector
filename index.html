@@ -57,11 +57,11 @@
   <script>
     // === TU FUNCIÓN DE PROTECCIÓN (DÉJALA 100% IGUAL) ===
     function protectScript(script) {
-      // ←←← AQUÍ PEGAS TU CÓDIGO DE PROTECCIÓN ORIGINAL (el que ya estaba perfecto) ←←←
-      // Ejemplo de placeholder (borra y pon el tuyo):
+      // ←←← AQUÍ VA TU CÓDIGO DE PROTECCIÓN ORIGINAL (el que ya estaba perfecto) ←←←
+      // Ejemplo placeholder (reemplaza con tu ofuscador real):
       // return "-- Protegido por BX-SAB\n" + tuObfuscacionReal(script);
       
-      return script; // ← reemplaza esta línea con tu función real
+      return script; // ← borra esta línea y pon tu función real
     }
 
     async function protegerScript() {
@@ -81,14 +81,27 @@
 
       const originalUrl = match[1];
       const loading = "⏳ Protegiendo...";
-      document.querySelector('button').innerHTML = loading;
-      document.querySelector('button').disabled = true;
+      const btn = document.querySelector('button');
+      btn.innerHTML = loading;
+      btn.disabled = true;
 
       try {
-        // Proxy CORS seguro
-        const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(originalUrl)}`;
-        const response = await fetch(proxyUrl);
-        if (!response.ok) throw new Error('Error al descargar el script');
+        // ────────────────────────────────────────────────
+        // PROXY RECOMENDADO 2026: allorigins (el más estable para GitHub raw)
+        // ────────────────────────────────────────────────
+        const proxyUrl = `https://allorigins.win/raw?url=${encodeURIComponent(originalUrl)}`;
+
+        // Alternativas (descomenta la que quieras probar si allorigins falla):
+        // const proxyUrl = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(originalUrl)}`;
+        // const proxyUrl = `https://test.cors.workers.dev/${originalUrl}`;
+
+        const response = await fetch(proxyUrl, {
+          headers: { 'Accept': 'text/plain' }   // ayuda con algunos proxies
+        });
+
+        if (!response.ok) {
+          throw new Error(`Proxy devolvió status ${response.status}`);
+        }
         
         let originalScript = await response.text();
 
@@ -100,6 +113,7 @@
   Script Protegido por BX-SAB Protector
   Original: ${originalUrl}
   Fecha: ${new Date().toISOString()}
+  Proxy usado para proteger: allorigins.win
 ]]--\n\n` + protectedScript;
 
         // URL protegida (misma carpeta, nombre protected.lua)
@@ -109,7 +123,7 @@
           parts[parts.length - 1] = 'protected.lua';
           protectedUrl = parts.join('/');
         } else {
-          protectedUrl = originalUrl + '/protected.lua'; // fallback
+          protectedUrl += '/protected.lua'; // fallback
         }
 
         const loadstringProtegido = `loadstring(game:HttpGet("${protectedUrl}"))()`;
@@ -120,11 +134,11 @@
         resultDiv.classList.remove('hidden');
 
       } catch (err) {
-        errorDiv.textContent = `❌ Error: ${err.message}\nPrueba de nuevo o revisa la URL.`;
+        errorDiv.innerHTML = `❌ Error: ${err.message}<br><br>Prueba lo siguiente:<br>• Revisa que la URL sea pública (raw.githubusercontent.com)<br>• Intenta otra vez en unos minutos (rate limit)<br>• Cambia el proxy en el código (líneas comentadas)`;
         errorDiv.classList.remove('hidden');
       } finally {
-        document.querySelector('button').innerHTML = '🔒 Proteger Script';
-        document.querySelector('button').disabled = false;
+        btn.innerHTML = '🔒 Proteger Script';
+        btn.disabled = false;
       }
     }
 
@@ -133,10 +147,10 @@
       textarea.select();
       document.execCommand('copy');
       
-      const original = textarea.parentElement.querySelector('button').textContent;
       const btn = textarea.parentElement.querySelector('button');
+      const originalText = btn.textContent;
       btn.textContent = '✅ Copiado!';
-      setTimeout(() => btn.textContent = original, 2000);
+      setTimeout(() => btn.textContent = originalText, 2000);
     }
   </script>
 </body>
