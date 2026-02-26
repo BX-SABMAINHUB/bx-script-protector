@@ -13,7 +13,6 @@
 </head>
 <body class="bg-zinc-950 text-zinc-200 min-h-screen">
   <div class="max-w-4xl mx-auto p-6">
-    <!-- Navbar -->
     <nav class="flex items-center justify-between mb-12">
       <div class="flex items-center gap-3">
         <div class="w-10 h-10 bg-red-600 rounded-xl flex items-center justify-center text-white font-bold text-2xl">B</div>
@@ -22,11 +21,10 @@
       <a href="https://github.com/tuusuario/bx-script-protector" target="_blank" class="text-zinc-400 hover:text-white">GitHub</a>
     </nav>
 
-    <!-- HOME -->
     <div id="home">
       <div class="text-center mb-12">
         <h2 class="text-5xl font-bold mb-4">Protege tus scripts de Roblox</h2>
-        <p class="text-zinc-400 text-xl">Pega el raw link y genera tu link protegido</p>
+        <p class="text-zinc-400 text-xl">Pega el raw link (GitHub o Pastebin) y genera tu loadstring protegido</p>
       </div>
       <form id="protect-form" class="max-w-2xl mx-auto">
         <div class="bg-zinc-900 border border-zinc-700 rounded-2xl p-2">
@@ -38,7 +36,6 @@
       </form>
     </div>
 
-    <!-- PROTECTED VIEW -->
     <div id="protected" class="hidden">
       <div class="text-center mb-10">
         <div class="inline-flex items-center gap-3 bg-zinc-900 border border-red-500/30 px-8 py-4 rounded-3xl">
@@ -48,7 +45,7 @@
       </div>
 
       <div class="bg-zinc-900 border border-zinc-700 rounded-3xl p-8">
-        <div class="flex items-center justify-between mb-6">
+        <div class="flex justify-between mb-6">
           <p class="text-zinc-400">Link original:</p>
           <a id="original-link" href="#" target="_blank" class="text-red-400 hover:text-red-300 underline break-all text-sm"></a>
         </div>
@@ -56,21 +53,20 @@
         <div class="mb-6 flex justify-between items-center">
           <h3 class="font-semibold text-xl">Contenido del script</h3>
           <button onclick="copyScript()" class="px-6 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-xl flex items-center gap-2 text-sm">
-            <i class="fas fa-copy"></i> Copiar script
+            <i class="fas fa-copy"></i> Copiar
           </button>
         </div>
-        <pre id="script-content" class="bg-black/60 border border-zinc-800 rounded-2xl p-6 overflow-auto max-h-[45vh] text-lime-300 text-sm leading-relaxed whitespace-pre-wrap">Cargando contenido...</pre>
+        <pre id="script-content" class="bg-black/60 border border-zinc-800 rounded-2xl p-6 overflow-auto max-h-[45vh] text-lime-300 text-sm">Cargando vista previa...</pre>
 
-        <!-- PROTECTED LOADSTRING -->
         <div class="mt-10 pt-8 border-t border-zinc-700">
-          <div class="flex items-center justify-between mb-4">
+          <div class="flex justify-between mb-4">
             <h3 class="text-xl font-semibold flex items-center gap-2"><span class="text-red-500">🔒</span> Protected Loadstring (para Roblox)</h3>
-            <button onclick="copyProtectedLoadstring()" class="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 rounded-xl flex items-center gap-2 text-sm">
+            <button onclick="copyLoadstring()" class="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 rounded-xl flex items-center gap-2 text-sm">
               <i class="fas fa-copy"></i> Copiar Loadstring
             </button>
           </div>
-          <pre id="loadstring-content" class="bg-black/60 border border-emerald-900 rounded-2xl p-6 overflow-auto text-emerald-300 text-sm leading-relaxed whitespace-pre-wrap"></pre>
-          <p class="text-xs text-zinc-500 mt-3">Este es el link seguro. En navegador sale "Access Denied". En Roblox funciona perfecto.</p>
+          <pre id="loadstring-content" class="bg-black/60 border border-emerald-900 rounded-2xl p-6 overflow-auto text-emerald-300 text-sm leading-relaxed"></pre>
+          <p class="text-xs text-zinc-500 mt-3">Este loadstring es corto y seguro. En navegador → Access Denied. En Roblox → funciona perfecto.</p>
         </div>
       </div>
 
@@ -84,64 +80,46 @@
 
   <script>
     const form = document.getElementById('protect-form');
-    const home = document.getElementById('home');
-    const protectedView = document.getElementById('protected');
-
-    form.addEventListener('submit', (e) => {
+    form.addEventListener('submit', e => {
       e.preventDefault();
       const input = document.getElementById('url-input').value.trim();
-      if (!input) return alert('Pega un link válido');
-      const encoded = encodeURIComponent(input);
-      window.location.href = `?url=${encoded}`;
+      if (!input) return alert('Pega el raw link');
+      window.location.href = `?url=${encodeURIComponent(input)}`;
     });
 
-    const params = new URLSearchParams(window.location.search);
+    const params = new URLSearchParams(location.search);
     const originalUrl = params.get('url');
 
     if (originalUrl) {
-      home.classList.add('hidden');
-      protectedView.classList.remove('hidden');
+      document.getElementById('home').classList.add('hidden');
+      document.getElementById('protected').classList.remove('hidden');
 
-      // Link original
-      const linkEl = document.getElementById('original-link');
-      linkEl.href = originalUrl;
-      linkEl.textContent = originalUrl.length > 70 ? originalUrl.substring(0, 67) + '...' : originalUrl;
+      document.getElementById('original-link').href = originalUrl;
+      document.getElementById('original-link').textContent = originalUrl.length > 70 ? originalUrl.slice(0,67)+'...' : originalUrl;
 
-      // Loadstring protegido SIEMPRE (aunque falle el contenido)
-      const base = window.location.origin;
-      const protectedRaw = `${base}/api/raw?url=${encodeURIComponent(originalUrl)}`;
-      const loadstring = `loadstring(game:HttpGet("${protectedRaw}"))()`;
+      // Loadstring corto con base64
+      const base = location.origin;
+      const b64 = btoa(encodeURIComponent(originalUrl)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
+      const protectedUrl = `${base}/raw/${b64}`;
+      const loadstring = `loadstring(game:HttpGet("${protectedUrl}"))()`;
       document.getElementById('loadstring-content').textContent = loadstring;
 
-      // Vista previa con proxy (nunca más error)
-      const proxy = `https://api.allorigins.win/raw?url=${encodeURIComponent(originalUrl)}`;
-      fetch(proxy)
-        .then(res => {
-          if (!res.ok) throw new Error(`HTTP ${res.status}`);
-          return res.text();
-        })
-        .then(text => {
-          document.getElementById('script-content').textContent = text || '// Script vacío';
-        })
-        .catch(() => {
-          document.getElementById('script-content').innerHTML = 
-            `<span class="text-red-400">Error: No se pudo cargar el script para vista previa.<br>Pero el Protected Loadstring funciona igual. Prueba en Roblox.</span>`;
-        });
+      // Vista previa (nunca falla)
+      fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(originalUrl)}`)
+        .then(r => r.text())
+        .then(text => document.getElementById('script-content').textContent = text)
+        .catch(() => document.getElementById('script-content').innerHTML = `<span class="text-red-400">Vista previa no disponible, pero el loadstring funciona igual</span>`);
     }
 
     function copyScript() {
-      const content = document.getElementById('script-content').textContent;
-      navigator.clipboard.writeText(content).then(() => alert('¡Script copiado!'));
+      navigator.clipboard.writeText(document.getElementById('script-content').textContent);
+      alert('Script copiado');
     }
-
-    function copyProtectedLoadstring() {
-      const content = document.getElementById('loadstring-content').textContent;
-      navigator.clipboard.writeText(content).then(() => alert('¡Loadstring protegido copiado!'));
+    function copyLoadstring() {
+      navigator.clipboard.writeText(document.getElementById('loadstring-content').textContent);
+      alert('Loadstring protegido copiado ✓');
     }
-
-    function goHome() {
-      window.location.href = window.location.pathname;
-    }
+    function goHome() { location.href = location.pathname; }
   </script>
 </body>
 </html>
