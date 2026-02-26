@@ -59,9 +59,9 @@
             <i class="fas fa-copy"></i> Copiar script
           </button>
         </div>
-        <pre id="script-content" class="bg-black/60 border border-zinc-800 rounded-2xl p-6 overflow-auto max-h-[50vh] text-lime-300 text-sm leading-relaxed whitespace-pre-wrap"></pre>
+        <pre id="script-content" class="bg-black/60 border border-zinc-800 rounded-2xl p-6 overflow-auto max-h-[45vh] text-lime-300 text-sm leading-relaxed whitespace-pre-wrap">Cargando contenido...</pre>
 
-        <!-- NUEVO: LOADSTRING PROTEGIDO -->
+        <!-- PROTECTED LOADSTRING -->
         <div class="mt-10 pt-8 border-t border-zinc-700">
           <div class="flex items-center justify-between mb-4">
             <h3 class="text-xl font-semibold flex items-center gap-2"><span class="text-red-500">🔒</span> Protected Loadstring (para Roblox)</h3>
@@ -95,7 +95,6 @@
       window.location.href = `?url=${encoded}`;
     });
 
-    // Detectar vista protegida
     const params = new URLSearchParams(window.location.search);
     const originalUrl = params.get('url');
 
@@ -108,21 +107,25 @@
       linkEl.href = originalUrl;
       linkEl.textContent = originalUrl.length > 70 ? originalUrl.substring(0, 67) + '...' : originalUrl;
 
-      // Fetch a través del proxy (nunca más error)
-      fetch(`${window.location.origin}/api/script?url=${encodeURIComponent(originalUrl)}`)
+      // Loadstring protegido SIEMPRE (aunque falle el contenido)
+      const base = window.location.origin;
+      const protectedRaw = `${base}/api/raw?url=${encodeURIComponent(originalUrl)}`;
+      const loadstring = `loadstring(game:HttpGet("${protectedRaw}"))()`;
+      document.getElementById('loadstring-content').textContent = loadstring;
+
+      // Vista previa con proxy (nunca más error)
+      const proxy = `https://api.allorigins.win/raw?url=${encodeURIComponent(originalUrl)}`;
+      fetch(proxy)
         .then(res => {
-          if (!res.ok) throw new Error('No se pudo cargar el script');
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
           return res.text();
         })
         .then(text => {
-          document.getElementById('script-content').textContent = text;
-
-          // Generar loadstring protegido
-          const loadstring = `loadstring(game:HttpGet("${window.location.origin}/api/raw?url=${encodeURIComponent(originalUrl)}"))()`;
-          document.getElementById('loadstring-content').textContent = loadstring;
+          document.getElementById('script-content').textContent = text || '// Script vacío';
         })
-        .catch(err => {
-          document.getElementById('script-content').innerHTML = `<span class="text-red-400">Error: ${err.message}</span>`;
+        .catch(() => {
+          document.getElementById('script-content').innerHTML = 
+            `<span class="text-red-400">Error: No se pudo cargar el script para vista previa.<br>Pero el Protected Loadstring funciona igual. Prueba en Roblox.</span>`;
         });
     }
 
@@ -133,7 +136,7 @@
 
     function copyProtectedLoadstring() {
       const content = document.getElementById('loadstring-content').textContent;
-      navigator.clipboard.writeText(content).then(() => alert('¡Loadstring protegido copiado! Pégalo en tu executor.'));
+      navigator.clipboard.writeText(content).then(() => alert('¡Loadstring protegido copiado!'));
     }
 
     function goHome() {
