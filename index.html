@@ -18,21 +18,23 @@
       <a href="https://github.com/tuusuario/bx-script-protector" target="_blank" class="text-zinc-400 hover:text-white">GitHub</a>
     </nav>
 
+    <!-- HOME: PEGAR SCRIPT COMPLETO -->
     <div id="home">
       <div class="text-center mb-12">
-        <h2 class="text-5xl font-bold mb-4">Protege tus scripts de Roblox</h2>
-        <p class="text-zinc-400 text-xl">Pega el raw link → genera loadstring protegido</p>
+        <h2 class="text-5xl font-bold mb-4">Protege tu script de Roblox</h2>
+        <p class="text-zinc-400 text-xl">Pega el script completo aquí y genera el loadstring seguro</p>
       </div>
-      <form id="protect-form" class="max-w-2xl mx-auto">
-        <div class="bg-zinc-900 border border-zinc-700 rounded-2xl p-2">
-          <input id="url-input" type="text" class="w-full bg-transparent px-6 py-5 text-lg outline-none placeholder-zinc-500" placeholder="https://raw.githubusercontent.com/... o https://pastebin.com/raw/...">
-        </div>
-        <button type="submit" class="mt-6 w-full bg-red-600 hover:bg-red-700 py-6 rounded-2xl text-xl font-semibold flex items-center justify-center gap-3">
+      <form id="protect-form" class="max-w-3xl mx-auto">
+        <textarea id="script-input" rows="12" 
+          class="w-full bg-zinc-900 border border-zinc-700 rounded-3xl p-6 text-sm text-lime-300 placeholder-zinc-500 resize-y min-h-[300px] outline-none"
+          placeholder="Pega aquí tu script completo..."></textarea>
+        <button type="submit" class="mt-6 w-full bg-red-600 hover:bg-red-700 py-6 rounded-3xl text-xl font-semibold flex items-center justify-center gap-3">
           <i class="fas fa-shield-alt"></i> PROTEGER SCRIPT
         </button>
       </form>
     </div>
 
+    <!-- PROTECTED VIEW -->
     <div id="protected" class="hidden">
       <div class="text-center mb-10">
         <div class="inline-flex items-center gap-3 bg-zinc-900 border border-red-500/30 px-8 py-4 rounded-3xl">
@@ -42,24 +44,19 @@
       </div>
 
       <div class="bg-zinc-900 border border-zinc-700 rounded-3xl p-8">
-        <div class="flex justify-between mb-6">
-          <p class="text-zinc-400">Link original:</p>
-          <a id="original-link" href="#" target="_blank" class="text-red-400 underline break-all text-sm"></a>
-        </div>
-
         <div class="mb-6 flex justify-between items-center">
-          <h3 class="text-xl font-semibold">Contenido del script</h3>
-          <button onclick="copyScript()" class="px-6 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-xl flex items-center gap-2 text-sm"><i class="fas fa-copy"></i> Copiar</button>
+          <h3 class="text-xl font-semibold">Tu script (vista previa)</h3>
+          <button onclick="copyScript()" class="px-6 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-xl flex items-center gap-2 text-sm"><i class="fas fa-copy"></i> Copiar script</button>
         </div>
-        <pre id="script-content" class="bg-black/60 border border-zinc-800 rounded-2xl p-6 overflow-auto max-h-[45vh] text-lime-300 text-sm">Cargando vista previa...</pre>
+        <pre id="script-content" class="bg-black/60 border border-zinc-800 rounded-2xl p-6 overflow-auto max-h-[45vh] text-lime-300 text-sm whitespace-pre-wrap"></pre>
 
         <div class="mt-10 pt-8 border-t border-zinc-700">
           <div class="flex justify-between mb-4">
-            <h3 class="text-xl font-semibold flex items-center gap-2"><span class="text-red-500">🔒</span> Protected Loadstring (para Roblox)</h3>
+            <h3 class="text-xl font-semibold flex items-center gap-2"><span class="text-red-500">🔒</span> Protected Loadstring (usa este en Roblox)</h3>
             <button onclick="copyLoadstring()" class="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 rounded-xl flex items-center gap-2 text-sm"><i class="fas fa-copy"></i> Copiar Loadstring</button>
           </div>
           <pre id="loadstring-content" class="bg-black/60 border border-emerald-900 rounded-2xl p-6 overflow-auto text-emerald-300 text-sm"></pre>
-          <p class="text-xs text-zinc-500 mt-3">Copia este loadstring y pégalo en tu executor. En navegador = Access Denied (inglés).</p>
+          <p class="text-xs text-zinc-500 mt-3">Copia este loadstring. En navegador = Access Denied (inglés). En cualquier executor = script completo.</p>
         </div>
       </div>
 
@@ -73,38 +70,29 @@
     const form = document.getElementById('protect-form');
     form.addEventListener('submit', e => {
       e.preventDefault();
-      const input = document.getElementById('url-input').value.trim();
-      if (!input) return alert('Pega el raw link');
-      window.location.href = `?url=${encodeURIComponent(input)}`;
-    });
+      const scriptText = document.getElementById('script-input').value.trim();
+      if (!scriptText) return alert('Pega tu script completo');
+      
+      const base = location.origin;
+      const b64 = btoa(encodeURIComponent(scriptText)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
+      const protectedUrl = `${base}/api/serve?s=${b64}`;
+      const loadstring = `loadstring(game:HttpGet("${protectedUrl}"))()`;
 
-    const params = new URLSearchParams(location.search);
-    const originalUrl = params.get('url');
-
-    if (originalUrl) {
+      // Mostrar vista protegida
       document.getElementById('home').classList.add('hidden');
       document.getElementById('protected').classList.remove('hidden');
-
-      const linkEl = document.getElementById('original-link');
-      linkEl.href = originalUrl;
-      linkEl.textContent = originalUrl.length > 70 ? originalUrl.slice(0,67)+'...' : originalUrl;
-
-      // Loadstring corto y seguro
-      const base = location.origin;
-      const b64 = btoa(encodeURIComponent(originalUrl)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
-      const protectedUrl = `${base}/api/protected?s=${b64}`;
-      const loadstring = `loadstring(game:HttpGet("${protectedUrl}"))()`;
+      document.getElementById('script-content').textContent = scriptText;
       document.getElementById('loadstring-content').textContent = loadstring;
+    });
 
-      // Vista previa
-      fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(originalUrl)}`)
-        .then(r => r.text())
-        .then(text => document.getElementById('script-content').textContent = text || '// Script vacío')
-        .catch(() => document.getElementById('script-content').innerHTML = `<span class="text-red-400">Vista previa no disponible (pero el loadstring funciona perfecto)</span>`);
+    function copyScript() {
+      navigator.clipboard.writeText(document.getElementById('script-content').textContent);
+      alert('Script copiado');
     }
-
-    function copyScript() { navigator.clipboard.writeText(document.getElementById('script-content').textContent); alert('Script copiado'); }
-    function copyLoadstring() { navigator.clipboard.writeText(document.getElementById('loadstring-content').textContent); alert('Loadstring protegido copiado ✓'); }
+    function copyLoadstring() {
+      navigator.clipboard.writeText(document.getElementById('loadstring-content').textContent);
+      alert('Loadstring seguro copiado ✓');
+    }
     function goHome() { location.href = location.pathname; }
   </script>
 </body>
