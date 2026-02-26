@@ -55,13 +55,11 @@
   </div>
 
   <script>
-    // === TU FUNCIÓN DE PROTECCIÓN (DÉJALA 100% IGUAL) ===
+    // === TU FUNCIÓN DE PROTECCIÓN (NO LA TOQUES) ===
     function protectScript(script) {
-      // ←←← AQUÍ VA TU CÓDIGO DE PROTECCIÓN ORIGINAL (el que ya estaba perfecto) ←←←
-      // Ejemplo placeholder (reemplaza con tu ofuscador real):
-      // return "-- Protegido por BX-SAB\n" + tuObfuscacionReal(script);
-      
-      return script; // ← borra esta línea y pon tu función real
+      // ←←← PEGA AQUÍ TU CÓDIGO DE PROTECCIÓN ORIGINAL ←←←
+      // Por ahora placeholder:
+      return script;
     }
 
     async function protegerScript() {
@@ -71,70 +69,91 @@
       errorDiv.classList.add('hidden');
       resultDiv.classList.add('hidden');
 
-      // Extraer URL del loadstring
       const match = input.match(/HttpGet\s*\(\s*["']([^"']+)["']\s*\)/i);
       if (!match) {
-        errorDiv.textContent = "❌ No se detectó un HttpGet válido en el loadstring. Pega el loadstring completo.";
+        errorDiv.textContent = "❌ No se detectó un HttpGet válido. Pega el loadstring completo.";
         errorDiv.classList.remove('hidden');
         return;
       }
 
-      const originalUrl = match[1];
-      const loading = "⏳ Protegiendo...";
+      const originalUrl = match[1].trim();
       const btn = document.querySelector('button');
-      btn.innerHTML = loading;
+      btn.innerHTML = '⏳ Protegiendo...';
       btn.disabled = true;
 
       try {
-        // ────────────────────────────────────────────────
-        // PROXY RECOMENDADO 2026: allorigins (el más estable para GitHub raw)
-        // ────────────────────────────────────────────────
-        const proxyUrl = `https://allorigins.win/raw?url=${encodeURIComponent(originalUrl)}`;
+        // ─────────────────────────────────────────────────────────────
+        // PROXIES ACTUALIZADOS 2026 – prueba en este orden
+        // ─────────────────────────────────────────────────────────────
+        const proxies = [
+          // Opción 1 – Cloudflare Worker (la más estable ahora para GitHub raw)
+          url => `https://test.cors.workers.dev/${url}`,
 
-        // Alternativas (descomenta la que quieras probar si allorigins falla):
-        // const proxyUrl = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(originalUrl)}`;
-        // const proxyUrl = `https://test.cors.workers.dev/${originalUrl}`;
+          // Opción 2 – CodeTabs (simple y sigue vivo)
+          url => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
 
-        const response = await fetch(proxyUrl, {
-          headers: { 'Accept': 'text/plain' }   // ayuda con algunos proxies
-        });
+          // Opción 3 – corsproxy.io (muy usado, pero a veces rate limit)
+          url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
 
-        if (!response.ok) {
-          throw new Error(`Proxy devolvió status ${response.status}`);
+          // Opción 4 – allorigins (la anterior, como fallback)
+          url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`
+        ];
+
+        let originalScript = null;
+        let usedProxy = '';
+
+        for (const proxyFn of proxies) {
+          try {
+            const proxyUrl = proxyFn(originalUrl);
+            usedProxy = proxyUrl.split('/')[2]; // solo para log
+
+            const response = await fetch(proxyUrl, {
+              headers: { 'Accept': 'text/plain,*/*' },
+              redirect: 'follow'
+            });
+
+            if (response.ok) {
+              originalScript = await response.text();
+              break; // ¡Éxito! salimos del loop
+            }
+            // Si no ok, probamos el siguiente proxy
+          } catch (e) {
+            // Error en este proxy → siguiente
+          }
         }
-        
-        let originalScript = await response.text();
 
-        // Aplicamos TU protección (intacta)
+        if (!originalScript) {
+          throw new Error('Ningún proxy pudo descargar el script (todos fallaron)');
+        }
+
+        // Aplicamos TU protección
         const protectedScript = protectScript(originalScript);
 
-        // Código final protegido con comentario
         const finalProtected = `--[[
   Script Protegido por BX-SAB Protector
   Original: ${originalUrl}
   Fecha: ${new Date().toISOString()}
-  Proxy usado para proteger: allorigins.win
+  Proxy que funcionó: ${usedProxy}
 ]]--\n\n` + protectedScript;
 
-        // URL protegida (misma carpeta, nombre protected.lua)
+        // Generar URL protegida
         let protectedUrl = originalUrl;
         if (originalUrl.includes('/')) {
           const parts = originalUrl.split('/');
           parts[parts.length - 1] = 'protected.lua';
           protectedUrl = parts.join('/');
         } else {
-          protectedUrl += '/protected.lua'; // fallback
+          protectedUrl = originalUrl.replace(/\/?$/, '') + '/protected.lua';
         }
 
         const loadstringProtegido = `loadstring(game:HttpGet("${protectedUrl}"))()`;
 
-        // Mostrar resultados
         document.getElementById('protectedCode').value = finalProtected;
         document.getElementById('protectedLoadstring').value = loadstringProtegido;
         resultDiv.classList.remove('hidden');
 
       } catch (err) {
-        errorDiv.innerHTML = `❌ Error: ${err.message}<br><br>Prueba lo siguiente:<br>• Revisa que la URL sea pública (raw.githubusercontent.com)<br>• Intenta otra vez en unos minutos (rate limit)<br>• Cambia el proxy en el código (líneas comentadas)`;
+        errorDiv.innerHTML = `❌ Error: ${err.message}<br><br>Pasos para solucionar:<br>• Confirma que la URL original abre directamente en el navegador (debe mostrar código Lua)<br>• Prueba cambiar de proxy (edita el array "proxies" en el código)<br>• Espera 1-2 min y reintenta (rate limits)<br>• Si es repo privado → no funcionará (debe ser público)`;
         errorDiv.classList.remove('hidden');
       } finally {
         btn.innerHTML = '🔒 Proteger Script';
@@ -146,11 +165,10 @@
       const textarea = document.getElementById(id);
       textarea.select();
       document.execCommand('copy');
-      
-      const btn = textarea.parentElement.querySelector('button');
-      const originalText = btn.textContent;
+      const btn = event.target;
+      const original = btn.textContent;
       btn.textContent = '✅ Copiado!';
-      setTimeout(() => btn.textContent = originalText, 2000);
+      setTimeout(() => btn.textContent = original, 1800);
     }
   </script>
 </body>
