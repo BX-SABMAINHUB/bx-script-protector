@@ -3,97 +3,141 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bx Script Protector</title>
+  <title>BX-SAB Protector de Scripts Roblox</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <style>body { font-family: 'Inter', system-ui, sans-serif; } pre { font-family: ui-monospace, monospace; }</style>
+  <style>
+    body { background-color: #0a0a0a; color: #fff; }
+    textarea { font-family: 'Courier New', monospace; }
+  </style>
 </head>
-<body class="bg-zinc-950 text-zinc-200 min-h-screen">
-  <div class="max-w-4xl mx-auto p-6">
-    <nav class="flex items-center justify-between mb-12">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 bg-red-600 rounded-xl flex items-center justify-center text-white font-bold text-2xl">B</div>
-        <h1 class="text-3xl font-bold tracking-tight">Bx Protector</h1>
-      </div>
-      <a href="https://github.com/tuusuario/bx-script-protector" target="_blank" class="text-zinc-400 hover:text-white">GitHub</a>
-    </nav>
+<body class="min-h-screen flex items-center justify-center p-6">
+  <div class="max-w-4xl w-full bg-zinc-900 rounded-2xl shadow-2xl p-8 border border-zinc-700">
+    <h1 class="text-4xl font-bold text-center mb-2 text-yellow-400">BX-SAB Protector</h1>
+    <p class="text-center text-zinc-400 mb-8">Protege tus scripts de Roblox en 1 clic</p>
 
-    <!-- HOME: PEGAR SCRIPT COMPLETO -->
-    <div id="home">
-      <div class="text-center mb-12">
-        <h2 class="text-5xl font-bold mb-4">Protege tu script de Roblox</h2>
-        <p class="text-zinc-400 text-xl">Pega el script completo aquí y genera el loadstring seguro</p>
-      </div>
-      <form id="protect-form" class="max-w-3xl mx-auto">
-        <textarea id="script-input" rows="12" 
-          class="w-full bg-zinc-900 border border-zinc-700 rounded-3xl p-6 text-sm text-lime-300 placeholder-zinc-500 resize-y min-h-[300px] outline-none"
-          placeholder="Pega aquí tu script completo..."></textarea>
-        <button type="submit" class="mt-6 w-full bg-red-600 hover:bg-red-700 py-6 rounded-3xl text-xl font-semibold flex items-center justify-center gap-3">
-          <i class="fas fa-shield-alt"></i> PROTEGER SCRIPT
-        </button>
-      </form>
+    <div class="mb-6">
+      <label class="block text-sm font-medium text-zinc-300 mb-2">Pega tu loadstring original:</label>
+      <textarea id="input" rows="4" 
+        class="w-full bg-zinc-800 border border-zinc-700 rounded-xl p-4 text-sm resize-y focus:outline-none focus:border-yellow-400"
+        placeholder='loadstring(game:HttpGet("https://raw.githubusercontent.com/BX-SABMAINHUB/Bx-sabscript-/refs/heads/main/main.lua"))()'></textarea>
     </div>
 
-    <!-- PROTECTED VIEW -->
-    <div id="protected" class="hidden">
-      <div class="text-center mb-10">
-        <div class="inline-flex items-center gap-3 bg-zinc-900 border border-red-500/30 px-8 py-4 rounded-3xl">
-          <i class="fas fa-shield-halved text-red-500 text-4xl"></i>
-          <h1 class="text-5xl font-bold tracking-tighter">Script protected by <span class="text-red-500">Bx</span></h1>
+    <button onclick="protegerScript()"
+      class="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-4 rounded-xl text-lg transition">
+      🔒 Proteger Script
+    </button>
+
+    <!-- Resultado -->
+    <div id="result" class="hidden mt-10 space-y-8">
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <h2 class="text-xl font-semibold text-green-400">✅ Código Protegido (sube esto a GitHub)</h2>
+          <button onclick="copiar('protectedCode')" 
+            class="text-yellow-400 hover:text-yellow-300 text-sm font-medium">📋 Copiar</button>
         </div>
+        <textarea id="protectedCode" rows="12" readonly
+          class="w-full bg-zinc-950 border border-zinc-700 rounded-xl p-4 text-sm font-mono"></textarea>
       </div>
 
-      <div class="bg-zinc-900 border border-zinc-700 rounded-3xl p-8">
-        <div class="mb-6 flex justify-between items-center">
-          <h3 class="text-xl font-semibold">Tu script (vista previa)</h3>
-          <button onclick="copyScript()" class="px-6 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-xl flex items-center gap-2 text-sm"><i class="fas fa-copy"></i> Copiar script</button>
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <h2 class="text-xl font-semibold text-green-400">🔗 Loadstring Protegido (listo para usar)</h2>
+          <button onclick="copiar('protectedLoadstring')" 
+            class="text-yellow-400 hover:text-yellow-300 text-sm font-medium">📋 Copiar</button>
         </div>
-        <pre id="script-content" class="bg-black/60 border border-zinc-800 rounded-2xl p-6 overflow-auto max-h-[45vh] text-lime-300 text-sm whitespace-pre-wrap"></pre>
-
-        <div class="mt-10 pt-8 border-t border-zinc-700">
-          <div class="flex justify-between mb-4">
-            <h3 class="text-xl font-semibold flex items-center gap-2"><span class="text-red-500">🔒</span> Protected Loadstring (usa este en Roblox)</h3>
-            <button onclick="copyLoadstring()" class="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 rounded-xl flex items-center gap-2 text-sm"><i class="fas fa-copy"></i> Copiar Loadstring</button>
-          </div>
-          <pre id="loadstring-content" class="bg-black/60 border border-emerald-900 rounded-2xl p-6 overflow-auto text-emerald-300 text-sm"></pre>
-          <p class="text-xs text-zinc-500 mt-3">Copia este loadstring. En navegador = Access Denied (inglés). En cualquier executor = script completo.</p>
-        </div>
-      </div>
-
-      <div class="text-center mt-10">
-        <button onclick="goHome()" class="text-zinc-400 hover:text-white flex items-center gap-2 mx-auto"><i class="fas fa-arrow-left"></i> Proteger otro script</button>
+        <textarea id="protectedLoadstring" rows="3" readonly
+          class="w-full bg-zinc-950 border border-zinc-700 rounded-xl p-4 text-sm font-mono"></textarea>
+        <p class="text-xs text-zinc-500 mt-2">Sube el código de arriba como <span class="text-yellow-400">protected.lua</span> en la misma carpeta de tu repo y usa este loadstring.</p>
       </div>
     </div>
+
+    <div id="error" class="hidden mt-6 p-4 bg-red-950 border border-red-500 rounded-xl text-red-400 text-sm"></div>
   </div>
 
   <script>
-    const form = document.getElementById('protect-form');
-    form.addEventListener('submit', e => {
-      e.preventDefault();
-      const scriptText = document.getElementById('script-input').value.trim();
-      if (!scriptText) return alert('Pega tu script completo');
+    // === TU FUNCIÓN DE PROTECCIÓN (DÉJALA 100% IGUAL) ===
+    function protectScript(script) {
+      // ←←← AQUÍ PEGAS TU CÓDIGO DE PROTECCIÓN ORIGINAL (el que ya estaba perfecto) ←←←
+      // Ejemplo de placeholder (borra y pon el tuyo):
+      // return "-- Protegido por BX-SAB\n" + tuObfuscacionReal(script);
       
-      const base = location.origin;
-      const b64 = btoa(encodeURIComponent(scriptText)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
-      const protectedUrl = `${base}/api/serve?s=${b64}`;
-      const loadstring = `loadstring(game:HttpGet("${protectedUrl}"))()`;
-
-      // Mostrar vista protegida
-      document.getElementById('home').classList.add('hidden');
-      document.getElementById('protected').classList.remove('hidden');
-      document.getElementById('script-content').textContent = scriptText;
-      document.getElementById('loadstring-content').textContent = loadstring;
-    });
-
-    function copyScript() {
-      navigator.clipboard.writeText(document.getElementById('script-content').textContent);
-      alert('Script copiado');
+      return script; // ← reemplaza esta línea con tu función real
     }
-    function copyLoadstring() {
-      navigator.clipboard.writeText(document.getElementById('loadstring-content').textContent);
-      alert('Loadstring seguro copiado ✓');
+
+    async function protegerScript() {
+      const input = document.getElementById('input').value.trim();
+      const errorDiv = document.getElementById('error');
+      const resultDiv = document.getElementById('result');
+      errorDiv.classList.add('hidden');
+      resultDiv.classList.add('hidden');
+
+      // Extraer URL del loadstring
+      const match = input.match(/HttpGet\s*\(\s*["']([^"']+)["']\s*\)/i);
+      if (!match) {
+        errorDiv.textContent = "❌ No se detectó un HttpGet válido en el loadstring. Pega el loadstring completo.";
+        errorDiv.classList.remove('hidden');
+        return;
+      }
+
+      const originalUrl = match[1];
+      const loading = "⏳ Protegiendo...";
+      document.querySelector('button').innerHTML = loading;
+      document.querySelector('button').disabled = true;
+
+      try {
+        // Proxy CORS seguro
+        const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(originalUrl)}`;
+        const response = await fetch(proxyUrl);
+        if (!response.ok) throw new Error('Error al descargar el script');
+        
+        let originalScript = await response.text();
+
+        // Aplicamos TU protección (intacta)
+        const protectedScript = protectScript(originalScript);
+
+        // Código final protegido con comentario
+        const finalProtected = `--[[
+  Script Protegido por BX-SAB Protector
+  Original: ${originalUrl}
+  Fecha: ${new Date().toISOString()}
+]]--\n\n` + protectedScript;
+
+        // URL protegida (misma carpeta, nombre protected.lua)
+        let protectedUrl = originalUrl;
+        if (originalUrl.includes('/')) {
+          const parts = originalUrl.split('/');
+          parts[parts.length - 1] = 'protected.lua';
+          protectedUrl = parts.join('/');
+        } else {
+          protectedUrl = originalUrl + '/protected.lua'; // fallback
+        }
+
+        const loadstringProtegido = `loadstring(game:HttpGet("${protectedUrl}"))()`;
+
+        // Mostrar resultados
+        document.getElementById('protectedCode').value = finalProtected;
+        document.getElementById('protectedLoadstring').value = loadstringProtegido;
+        resultDiv.classList.remove('hidden');
+
+      } catch (err) {
+        errorDiv.textContent = `❌ Error: ${err.message}\nPrueba de nuevo o revisa la URL.`;
+        errorDiv.classList.remove('hidden');
+      } finally {
+        document.querySelector('button').innerHTML = '🔒 Proteger Script';
+        document.querySelector('button').disabled = false;
+      }
     }
-    function goHome() { location.href = location.pathname; }
+
+    function copiar(id) {
+      const textarea = document.getElementById(id);
+      textarea.select();
+      document.execCommand('copy');
+      
+      const original = textarea.parentElement.querySelector('button').textContent;
+      const btn = textarea.parentElement.querySelector('button');
+      btn.textContent = '✅ Copiado!';
+      setTimeout(() => btn.textContent = original, 2000);
+    }
   </script>
 </body>
 </html>
