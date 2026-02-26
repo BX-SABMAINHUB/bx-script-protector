@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bx Script Protector</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    body { font-family: 'Inter', system-ui, sans-serif; }
+    pre { font-family: ui-monospace, monospace; }
+  </style>
+</head>
+<body class="bg-zinc-950 text-zinc-200 min-h-screen">
+  <div class="max-w-4xl mx-auto p-6">
+    <!-- Navbar -->
+    <nav class="flex items-center justify-between mb-12">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-red-600 rounded-xl flex items-center justify-center text-white font-bold text-2xl">B</div>
+        <h1 class="text-3xl font-bold tracking-tight">Bx Protector</h1>
+      </div>
+      <a href="https://github.com/tuusuario/bx-script-protector" target="_blank" 
+         class="text-zinc-400 hover:text-white transition">GitHub</a>
+    </nav>
+
+    <!-- HOME (formulario) -->
+    <div id="home">
+      <div class="text-center mb-12">
+        <h2 class="text-5xl font-bold mb-4">Protege tus scripts de Roblox</h2>
+        <p class="text-zinc-400 text-xl">Pega el raw link y genera tu link protegido</p>
+      </div>
+
+      <form id="protect-form" class="max-w-2xl mx-auto">
+        <div class="bg-zinc-900 border border-zinc-700 rounded-2xl p-2">
+          <input id="url-input" type="text" 
+                 class="w-full bg-transparent px-6 py-5 text-lg outline-none placeholder-zinc-500"
+                 placeholder="https://raw.githubusercontent.com/.../script.lua o https://pastebin.com/raw/XXXX">
+        </div>
+        <button type="submit"
+                class="mt-6 w-full bg-red-600 hover:bg-red-700 transition py-6 rounded-2xl text-xl font-semibold flex items-center justify-center gap-3">
+          <i class="fas fa-shield-alt"></i>
+          PROTEGER SCRIPT
+        </button>
+      </form>
+
+      <p class="text-center text-zinc-500 mt-8 text-sm">
+        Solo GitHub Raw y Pastebin Raw • Funciona en cualquier executor
+      </p>
+    </div>
+
+    <!-- PROTECTED VIEW -->
+    <div id="protected" class="hidden">
+      <div class="text-center mb-10">
+        <div class="inline-flex items-center gap-3 bg-zinc-900 border border-red-500/30 px-8 py-4 rounded-3xl">
+          <i class="fas fa-shield-halved text-red-500 text-4xl"></i>
+          <h1 class="text-5xl font-bold tracking-tighter text-white">Script protected by <span class="text-red-500">Bx</span></h1>
+        </div>
+      </div>
+
+      <div class="bg-zinc-900 border border-zinc-700 rounded-3xl p-8">
+        <div class="flex items-center justify-between mb-6">
+          <p class="text-zinc-400">Link original:</p>
+          <a id="original-link" href="#" target="_blank" 
+             class="text-red-400 hover:text-red-300 underline break-all text-sm"></a>
+        </div>
+
+        <div class="mb-4 flex justify-between items-center">
+          <h3 class="font-semibold text-xl">Contenido del script</h3>
+          <div class="flex gap-3">
+            <button onclick="copyScript()" 
+                    class="px-6 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-xl flex items-center gap-2 text-sm">
+              <i class="fas fa-copy"></i> Copiar script
+            </button>
+            <button onclick="copyLoadstring()" 
+                    class="px-6 py-2 bg-red-600 hover:bg-red-700 rounded-xl flex items-center gap-2 text-sm">
+              <i class="fas fa-rocket"></i> Copiar loadstring
+            </button>
+          </div>
+        </div>
+
+        <pre id="script-content" 
+             class="bg-black/60 border border-zinc-800 rounded-2xl p-6 overflow-auto max-h-[65vh] text-lime-300 text-sm leading-relaxed whitespace-pre-wrap"></pre>
+      </div>
+
+      <div class="text-center mt-10">
+        <button onclick="goHome()" 
+                class="text-zinc-400 hover:text-white flex items-center gap-2 mx-auto">
+          <i class="fas fa-arrow-left"></i> Proteger otro script
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Tailwind script
+    function initTailwind() {
+      // ya está cargado
+    }
+
+    const form = document.getElementById('protect-form');
+    const home = document.getElementById('home');
+    const protectedView = document.getElementById('protected');
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const input = document.getElementById('url-input').value.trim();
+      if (!input) return alert('Pega un link válido');
+      
+      const encoded = encodeURIComponent(input);
+      window.location.href = `?url=${encoded}`;
+    });
+
+    // Detectar si hay parámetro ?url=
+    const params = new URLSearchParams(window.location.search);
+    const rawUrl = params.get('url');
+
+    if (rawUrl) {
+      const decodedUrl = decodeURIComponent(rawUrl);
+      home.classList.add('hidden');
+      protectedView.classList.remove('hidden');
+
+      // Mostrar link original
+      const linkEl = document.getElementById('original-link');
+      linkEl.href = decodedUrl;
+      linkEl.textContent = decodedUrl.length > 70 ? decodedUrl.substring(0, 67) + '...' : decodedUrl;
+
+      // Fetch del script
+      fetch(decodedUrl)
+        .then(res => {
+          if (!res.ok) throw new Error('No se pudo cargar el script');
+          return res.text();
+        })
+        .then(text => {
+          document.getElementById('script-content').textContent = text;
+        })
+        .catch(err => {
+          document.getElementById('script-content').innerHTML = 
+            `<span class="text-red-400">Error al cargar el script: ${err.message}</span>`;
+        });
+    }
+
+    // Funciones de botones
+    function copyScript() {
+      const content = document.getElementById('script-content').textContent;
+      navigator.clipboard.writeText(content).then(() => {
+        alert('¡Script copiado al portapapeles!');
+      });
+    }
+
+    function copyLoadstring() {
+      const original = decodeURIComponent(rawUrl || '');
+      const loadstring = `loadstring(game:HttpGet("${original}"))()`;
+      navigator.clipboard.writeText(loadstring).then(() => {
+        alert('¡Loadstring copiado! Pégalo en tu executor.');
+      });
+    }
+
+    function goHome() {
+      window.location.href = window.location.pathname;
+    }
+  </script>
+</body>
+</html>
