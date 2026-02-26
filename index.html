@@ -6,10 +6,7 @@
   <title>Bx Script Protector</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <style>
-    body { font-family: 'Inter', system-ui, sans-serif; }
-    pre { font-family: ui-monospace, monospace; }
-  </style>
+  <style>body { font-family: 'Inter', system-ui, sans-serif; } pre { font-family: ui-monospace, monospace; }</style>
 </head>
 <body class="bg-zinc-950 text-zinc-200 min-h-screen">
   <div class="max-w-4xl mx-auto p-6">
@@ -24,13 +21,13 @@
     <div id="home">
       <div class="text-center mb-12">
         <h2 class="text-5xl font-bold mb-4">Protege tus scripts de Roblox</h2>
-        <p class="text-zinc-400 text-xl">Pega el raw link (GitHub o Pastebin) y genera tu loadstring protegido</p>
+        <p class="text-zinc-400 text-xl">Pega el raw link → genera loadstring protegido</p>
       </div>
       <form id="protect-form" class="max-w-2xl mx-auto">
         <div class="bg-zinc-900 border border-zinc-700 rounded-2xl p-2">
           <input id="url-input" type="text" class="w-full bg-transparent px-6 py-5 text-lg outline-none placeholder-zinc-500" placeholder="https://raw.githubusercontent.com/... o https://pastebin.com/raw/...">
         </div>
-        <button type="submit" class="mt-6 w-full bg-red-600 hover:bg-red-700 transition py-6 rounded-2xl text-xl font-semibold flex items-center justify-center gap-3">
+        <button type="submit" class="mt-6 w-full bg-red-600 hover:bg-red-700 py-6 rounded-2xl text-xl font-semibold flex items-center justify-center gap-3">
           <i class="fas fa-shield-alt"></i> PROTEGER SCRIPT
         </button>
       </form>
@@ -47,33 +44,27 @@
       <div class="bg-zinc-900 border border-zinc-700 rounded-3xl p-8">
         <div class="flex justify-between mb-6">
           <p class="text-zinc-400">Link original:</p>
-          <a id="original-link" href="#" target="_blank" class="text-red-400 hover:text-red-300 underline break-all text-sm"></a>
+          <a id="original-link" href="#" target="_blank" class="text-red-400 underline break-all text-sm"></a>
         </div>
 
         <div class="mb-6 flex justify-between items-center">
-          <h3 class="font-semibold text-xl">Contenido del script</h3>
-          <button onclick="copyScript()" class="px-6 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-xl flex items-center gap-2 text-sm">
-            <i class="fas fa-copy"></i> Copiar
-          </button>
+          <h3 class="text-xl font-semibold">Contenido del script</h3>
+          <button onclick="copyScript()" class="px-6 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-xl flex items-center gap-2 text-sm"><i class="fas fa-copy"></i> Copiar</button>
         </div>
         <pre id="script-content" class="bg-black/60 border border-zinc-800 rounded-2xl p-6 overflow-auto max-h-[45vh] text-lime-300 text-sm">Cargando vista previa...</pre>
 
         <div class="mt-10 pt-8 border-t border-zinc-700">
           <div class="flex justify-between mb-4">
             <h3 class="text-xl font-semibold flex items-center gap-2"><span class="text-red-500">🔒</span> Protected Loadstring (para Roblox)</h3>
-            <button onclick="copyLoadstring()" class="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 rounded-xl flex items-center gap-2 text-sm">
-              <i class="fas fa-copy"></i> Copiar Loadstring
-            </button>
+            <button onclick="copyLoadstring()" class="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 rounded-xl flex items-center gap-2 text-sm"><i class="fas fa-copy"></i> Copiar Loadstring</button>
           </div>
-          <pre id="loadstring-content" class="bg-black/60 border border-emerald-900 rounded-2xl p-6 overflow-auto text-emerald-300 text-sm leading-relaxed"></pre>
-          <p class="text-xs text-zinc-500 mt-3">Este loadstring es corto y seguro. En navegador → Access Denied. En Roblox → funciona perfecto.</p>
+          <pre id="loadstring-content" class="bg-black/60 border border-emerald-900 rounded-2xl p-6 overflow-auto text-emerald-300 text-sm"></pre>
+          <p class="text-xs text-zinc-500 mt-3">Copia este loadstring y pégalo en tu executor. En navegador = Access Denied (inglés).</p>
         </div>
       </div>
 
       <div class="text-center mt-10">
-        <button onclick="goHome()" class="text-zinc-400 hover:text-white flex items-center gap-2 mx-auto">
-          <i class="fas fa-arrow-left"></i> Proteger otro script
-        </button>
+        <button onclick="goHome()" class="text-zinc-400 hover:text-white flex items-center gap-2 mx-auto"><i class="fas fa-arrow-left"></i> Proteger otro script</button>
       </div>
     </div>
   </div>
@@ -94,31 +85,26 @@
       document.getElementById('home').classList.add('hidden');
       document.getElementById('protected').classList.remove('hidden');
 
-      document.getElementById('original-link').href = originalUrl;
-      document.getElementById('original-link').textContent = originalUrl.length > 70 ? originalUrl.slice(0,67)+'...' : originalUrl;
+      const linkEl = document.getElementById('original-link');
+      linkEl.href = originalUrl;
+      linkEl.textContent = originalUrl.length > 70 ? originalUrl.slice(0,67)+'...' : originalUrl;
 
-      // Loadstring corto con base64
+      // Loadstring corto y seguro
       const base = location.origin;
       const b64 = btoa(encodeURIComponent(originalUrl)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
-      const protectedUrl = `${base}/raw/${b64}`;
+      const protectedUrl = `${base}/api/protected?s=${b64}`;
       const loadstring = `loadstring(game:HttpGet("${protectedUrl}"))()`;
       document.getElementById('loadstring-content').textContent = loadstring;
 
-      // Vista previa (nunca falla)
+      // Vista previa
       fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(originalUrl)}`)
         .then(r => r.text())
-        .then(text => document.getElementById('script-content').textContent = text)
-        .catch(() => document.getElementById('script-content').innerHTML = `<span class="text-red-400">Vista previa no disponible, pero el loadstring funciona igual</span>`);
+        .then(text => document.getElementById('script-content').textContent = text || '// Script vacío')
+        .catch(() => document.getElementById('script-content').innerHTML = `<span class="text-red-400">Vista previa no disponible (pero el loadstring funciona perfecto)</span>`);
     }
 
-    function copyScript() {
-      navigator.clipboard.writeText(document.getElementById('script-content').textContent);
-      alert('Script copiado');
-    }
-    function copyLoadstring() {
-      navigator.clipboard.writeText(document.getElementById('loadstring-content').textContent);
-      alert('Loadstring protegido copiado ✓');
-    }
+    function copyScript() { navigator.clipboard.writeText(document.getElementById('script-content').textContent); alert('Script copiado'); }
+    function copyLoadstring() { navigator.clipboard.writeText(document.getElementById('loadstring-content').textContent); alert('Loadstring protegido copiado ✓'); }
     function goHome() { location.href = location.pathname; }
   </script>
 </body>
